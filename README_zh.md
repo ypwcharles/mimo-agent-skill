@@ -1,8 +1,12 @@
-# MiMo Multimodal Skills
+# MiMo Agent Skill
 
 [English](./README.md)
 
-基于[小米 MiMo](https://platform.xiaomimimo.com) 的 AI 编程工具多模态技能与 MCP 服务器。分析图片、音频、视频，并生成语音 — 支持 Claude Code、Cursor、Codex、OpenCode 等所有支持 MCP 或 Agent Skills 的工具。
+为 AI 编程工具添加多模态能力的 Agent 技能与 MCP 服务器，基于[小米 MiMo](https://platform.xiaomimimo.com)。
+
+**为什么需要这个：** MiMo v2.5 Pro 是一个强大的推理模型，但原生不支持多模态输入。这些技能弥补了这一空白 — 让你的 Agent 调用 MiMo v2.5（视觉）和 MiMo v2-Omni（音频/视频）来进行图片理解、音频转写、视频分析和语音合成，无需切换主模型即可获得完整的多模态能力。
+
+支持 Claude Code、Cursor、Codex、OpenCode 等所有支持 MCP 或 Agent Skills 的工具。
 
 ## 技能列表
 

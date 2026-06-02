@@ -1,8 +1,12 @@
-# MiMo Multimodal Skills
+# MiMo Agent Skill
 
 [中文版](./README_zh.md)
 
-Skills and MCP server for AI coding agents, powered by [Xiaomi MiMo](https://platform.xiaomimimo.com). Analyze images, audio, and video, and generate speech — works with Claude Code, Cursor, Codex, OpenCode, and any tool that supports MCP or agent skills.
+Agent skills and MCP server that add multimodal capabilities to any AI coding agent, powered by [Xiaomi MiMo](https://platform.xiaomimimo.com).
+
+**Why this exists:** MiMo v2.5 Pro is a strong reasoning model but does not support multimodal input natively. These skills bridge that gap — they let your agent call MiMo v2.5 (vision) and MiMo v2-Omni (audio/video) for image understanding, audio transcription, video analysis, and TTS, giving your agent full multimodal capabilities without switching away from v2.5 Pro as the primary model.
+
+Works with Claude Code, Cursor, Codex, OpenCode, and any tool that supports MCP or agent skills.
 
 ## Available Skills
 

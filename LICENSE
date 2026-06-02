@@ -1,6 +1,10 @@
 MIT License
 
-Copyright (c) 2026 mimo-multimodal contributors
+Copyright (c) 2026 mimo-agent-skill contributors
+
+This project provides agent skills and an MCP server for the Xiaomi MiMo API
+(https://platform.xiaomimimo.com). MiMo is a product of Xiaomi Inc. This project
+is not affiliated with or endorsed by Xiaomi.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

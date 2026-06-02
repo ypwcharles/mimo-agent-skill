@@ -1,17 +1,17 @@
 ---
 name: mimo-image-understanding
 description: >
-  Analyze images using Xiaomi MiMo vision model — OCR, UI review, chart extraction,
-  object detection, web debugging. Triggers on: .jpg, .jpeg, .png, .gif, .webp, .bmp,
-  .svg file extensions, or phrases like "analyze image", "describe photo", "OCR",
-  "read this image", "what's in this picture", "understand this screenshot".
-  Also triggers for: UI mockup review, chart data extraction, object detection,
-  web debugging screenshots, frontend layout verification, visual regression comparison.
-  When a screenshot is taken via browser tools and needs visual analysis, pass the
-  saved image path to this skill — do NOT rely on the Read tool for screenshot analysis.
+  Analyze images using Xiaomi MiMo vision model. Supports OCR, UI review, chart
+  data extraction, object detection, and frontend web debugging from screenshots.
+  ALWAYS use this skill when the user shares or references an image file (.jpg, .jpeg,
+  .png, .gif, .webp, .bmp, .svg), even if they just casually mention a screenshot,
+  photo, or picture. Also use when the user asks to: extract text from an image,
+  review a UI mockup or design, read a chart or graph, identify objects in a photo,
+  debug a frontend layout from a browser screenshot, or do visual regression analysis.
+  Do NOT use the Read tool for image analysis — always use this skill's MCP tools instead.
 license: MIT
 metadata:
-  version: "2.0"
+  version: "2.1"
   category: ai-multimodal
   sources:
     - https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/image-understanding
@@ -19,35 +19,13 @@ metadata:
 
 # MiMo Image Understanding
 
-Analyze images using the Xiaomi MiMo vision model. Supports OCR, UI review, chart data extraction, object detection, and web debugging.
-
 ## Prerequisites
 
-- MiMo multimodal MCP server running with `understand_image` tool available
-- If the tool is NOT available, perform the following first-time setup:
-
-### First-time Setup
-
-Ask the user these questions **before** configuring:
-
-1. **Which plan are you using?**
-   - **Token Plan** (token 套餐) — uses a dedicated token plan endpoint (e.g. `https://token-plan-cn.xiaomimimo.com/v1`)
-   - **Standard API** (标准 API 调用) — uses the standard endpoint `https://api.xiaomimimo.com/v1`
-   - **Third-party provider** — uses the provider's own endpoint
-
-2. **What is your API Base URL?** — based on their answer above, confirm the exact URL. Do NOT assume or guess.
-
-3. **What is your API Key?**
-
-Then help them register the MCP server with both `MIMO_API_BASE` and `MIMO_API_KEY`. See `references/setup.md` for the exact commands.
+Requires `mcp__mimo-multimodal__understand_image` tool. If not available, read `references/setup.md` and help the user configure the MCP server first — you will need to ask them for their API plan type (token plan vs standard API) and credentials.
 
 ## Supported Formats
 
-JPEG, PNG, GIF, WebP, BMP — max 50MB per image (URL or Base64)
-
-## Multi-Image Support
-
-Multiple images can be sent in a single request. The model parses all images and returns semantically relevant responses. Useful for comparing images, analyzing sequences, or understanding relationships between visuals.
+JPEG, PNG, GIF, WebP, BMP — max 50MB per image (URL or Base64). Multiple images can be sent in one request for comparison.
 
 ## Analysis Modes
 
@@ -63,34 +41,27 @@ Multiple images can be sent in a single request. The model parses all images and
 ## Workflow
 
 1. Detect image files by extension: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`, `.svg`
-2. Select the appropriate analysis mode based on context
+2. Select the analysis mode based on context (or ask the user what they need)
 3. Call `mcp__mimo-multimodal__understand_image` with the file path/URL and the mode's prompt
-4. Present results in the appropriate format
+4. Present results in the format below
 
-## Web Debugging Screenshot Pipeline
+### Web Debugging Pipeline
 
-When doing frontend debugging:
-
-1. Take a browser screenshot using available tools and save to disk
-2. Pass the saved path to `understand_image` with the `web-debug` prompt
-3. Report findings with specific CSS/code fix suggestions
+When doing frontend debugging, take a browser screenshot first (using available tools), save to disk, then pass the saved path to `understand_image` with the `web-debug` prompt.
 
 ## Output Formats
 
 **describe / object-detect:** Readable prose or structured list
 
-**ocr / chart-data:** Preserved structure (tables, lists, columns)
+**ocr / chart-data:** Preserve structure (tables, lists, columns)
 
 **ui-review:**
 ```
 ## Design Review
-
 ### Strengths
 - ...
-
 ### Issues
 1. [Element] — [Problem description]
-
 ### Suggestions
 - ...
 ```
@@ -98,62 +69,12 @@ When doing frontend debugging:
 **web-debug:**
 ```
 ## Visual Bug Report
-
 ### Issues Found
 1. **[Element]** — [Problem]
    - Location: [where]
    - Fix: [CSS/code suggestion]
 ```
 
-## Platform Examples
+## API Reference
 
-### Curl (OpenAI-compatible)
-```bash
-curl -X POST "$MIMO_API_BASE/chat/completions" \
-  -H "api-key: $MIMO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "mimo-v2.5",
-    "messages": [{"role":"user","content":[
-      {"type":"image_url","image_url":{"url":"$IMAGE_URL_OR_DATA_URI"}},
-      {"type":"text","text":"Describe this image"}
-    ]}],
-    "max_completion_tokens": 1024
-  }'
-```
-
-### Python (OpenAI SDK)
-```python
-from openai import OpenAI
-client = OpenAI(api_key=MIMO_API_KEY, base_url=f"{MIMO_API_BASE}")
-completion = client.chat.completions.create(
-    model="mimo-v2.5",
-    messages=[{"role":"user","content":[
-        {"type":"image_url","image_url":{"url":"$IMAGE_URL_OR_DATA_URI"}},
-        {"type":"text","text":"Describe this image"}
-    ]}],
-    max_completion_tokens=1024
-)
-```
-
-### Curl (Anthropic-compatible)
-```bash
-curl -X POST "$MIMO_API_BASE/anthropic/v1/messages" \
-  -H "api-key: $MIMO_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "mimo-v2.5",
-    "max_tokens": 1024,
-    "messages": [{"role":"user","content":[
-      {"type":"image","source":{"type":"url","url":"$IMAGE_URL"}},
-      {"type":"text","text":"Describe this image"}
-    ]}]
-  }'
-```
-
-## Notes
-
-- Both local file paths and public URLs are accepted
-- Multiple images can be sent in one request for comparison
-- The model returns `reasoning_content` (chain-of-thought) alongside the final answer
-- Token usage includes `image_tokens` in the response
+For direct API calls (without MCP), see `references/api-examples.md`.
