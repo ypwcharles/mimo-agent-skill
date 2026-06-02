@@ -1,15 +1,15 @@
 ---
 name: mimo-video-understanding
 description: >
-  Analyze and understand video content using Xiaomi MiMo model. Supports scene
-  description, video summarization, and action detection with timestamps.
-  ALWAYS use this skill when the user shares or references a video file (.mp4, .mov,
-  .avi, .wmv), even casually. Also use when the user asks to: describe what happens
-  in a video, summarize a tutorial or lecture, identify actions in footage, or
-  extract key moments from a recording.
+  Analyze and understand video content using Xiaomi MiMo model — scene description,
+  video summarization, and action detection with timestamps.
+  Use this skill whenever the user shares or references a video file (.mp4, .mov,
+  .avi, .wmv), even casually. Also use for: describing video content, summarizing
+  tutorials or lectures, identifying actions in footage, extracting key moments, and
+  analyzing screen recordings.
 license: MIT
 metadata:
-  version: "2.1"
+  version: "2.2"
   category: ai-multimodal
   sources:
     - https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/video-understanding
@@ -19,7 +19,7 @@ metadata:
 
 ## Prerequisites
 
-Requires `mcp__mimo-multimodal__understand_video` tool. If not available, read `references/setup.md` and help the user configure the MCP server first — you will need to ask them for their API plan type (token plan vs standard API) and credentials.
+Requires `mcp__mimo-multimodal__understand_video` tool. If not available, read `references/setup.md` and help the user configure the MCP server — you will need to ask for their API plan type (token plan vs standard API) and credentials.
 
 ## Supported Formats
 
@@ -79,6 +79,11 @@ MP4, MOV, AVI, WMV
 - Audio tokens: `duration_seconds × 6.25`; visual tokens depend on fps/resolution
 - Use `media_resolution: "max"` when fine details matter (small text, textures)
 
-## API Reference
+## Error Handling
+
+- **401 Unauthorized:** API key is invalid or expired — ask user to check their key
+- **413 Payload Too Large:** Video exceeds 300MB (URL) or 50MB (Base64)
+- **Connection timeout:** Check if `MIMO_API_BASE` URL is correct for the user's plan
+- **Unrecognized format:** Try converting to standard MP4 (H.264 codec)
 
 For direct API calls (without MCP), see `references/api-examples.md`.

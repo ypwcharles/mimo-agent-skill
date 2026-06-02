@@ -1,16 +1,16 @@
 ---
 name: mimo-tts
 description: >
-  Convert text to speech using Xiaomi MiMo TTS. Three modes: preset voices,
-  voice design from text descriptions, and voice cloning from audio samples.
-  Supports style control via natural language and audio tags, dialects, and singing.
-  ALWAYS use this skill when the user asks to: generate speech from text, create a
-  voiceover, clone a voice, design a custom voice, read text aloud, convert text
-  to audio, or generate singing vocals. Also trigger on "TTS", "text to speech",
-  "speech synthesis", "voice clone", "voice design".
+  Convert text to speech using Xiaomi MiMo TTS — preset voices, voice design from
+  text descriptions, and voice cloning from audio samples. Supports style control
+  via natural language and audio tags, dialects, and singing mode.
+  Use this skill when the user asks to: generate speech from text, create a voiceover,
+  clone a voice, design a custom voice, read text aloud, convert text to audio, or
+  generate singing vocals. Also trigger on "TTS", "text to speech", "speech synthesis",
+  "voice clone", "voice design", "voiceover", "read aloud".
 license: MIT
 metadata:
-  version: "2.1"
+  version: "2.2"
   category: ai-multimodal
   sources:
     - https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/speech-synthesis-v2.5
@@ -20,17 +20,26 @@ metadata:
 
 ## Prerequisites
 
-Requires `mcp__mimo-multimodal__tts` tool. If not available, read `references/setup.md` and help the user configure the MCP server first — you will need to ask them for their API plan type (token plan vs standard API) and credentials.
+Requires `mcp__mimo-multimodal__tts` tool. If not available, read `references/setup.md` and help the user configure the MCP server — you will need to ask for their API plan type (token plan vs standard API) and credentials.
 
-## Models
+## Model Selection
 
-| Model | Function | Voice Source |
-|---|---|---|
-| `mimo-v2.5-tts` | Preset premium voices | Preset list below. Supports singing. |
-| `mimo-v2.5-tts-voicedesign` | Custom voice from text description | Auto-generated from `user` message |
-| `mimo-v2.5-tts-voiceclone` | Clone voice from audio sample | Audio sample (mp3/wav, max 10MB Base64) |
+Choose the right model based on the user's need:
 
-## Preset Voices
+```
+User wants TTS
+  │
+  ├─ Has an audio sample to clone? ──→ mimo-v2.5-tts-voiceclone
+  │   (provide mp3/wav sample, max 10MB Base64)
+  │
+  ├─ Describes a voice in words? ──→ mimo-v2.5-tts-voicedesign
+  │   (e.g. "young woman, warm and confident, slow pace")
+  │
+  └─ Wants a ready-made voice? ──→ mimo-v2.5-tts
+      (pick from preset voice list below)
+```
+
+## Preset Voices (mimo-v2.5-tts only)
 
 | Voice | ID | Language | Gender |
 |---|---|---|---|
@@ -98,6 +107,11 @@ Inline tags anywhere in text: `[吸气]` `[叹气]` `[笑]` `[大笑]` `[抽泣]
 - For `mimo-v2.5-tts-voicedesign`, the `user` message is **required**
 - TTS is currently **free** (limited-time promotional pricing)
 
-## API Reference
+## Error Handling
+
+- **401 Unauthorized:** API key is invalid or expired — ask user to check their key
+- **413 Payload Too Large:** Voice clone sample exceeds 10MB Base64
+- **Connection timeout:** Check if `MIMO_API_BASE` URL is correct for the user's plan
+- **Empty audio response:** Check that text is in `role: assistant` (not `user`)
 
 For direct API calls (without MCP), see `references/api-examples.md`.

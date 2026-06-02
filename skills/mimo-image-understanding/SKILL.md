@@ -1,17 +1,18 @@
 ---
 name: mimo-image-understanding
 description: >
-  Analyze images using Xiaomi MiMo vision model. Supports OCR, UI review, chart
-  data extraction, object detection, and frontend web debugging from screenshots.
-  ALWAYS use this skill when the user shares or references an image file (.jpg, .jpeg,
-  .png, .gif, .webp, .bmp, .svg), even if they just casually mention a screenshot,
-  photo, or picture. Also use when the user asks to: extract text from an image,
-  review a UI mockup or design, read a chart or graph, identify objects in a photo,
-  debug a frontend layout from a browser screenshot, or do visual regression analysis.
-  Do NOT use the Read tool for image analysis — always use this skill's MCP tools instead.
+  Analyze images using Xiaomi MiMo vision model — OCR, UI review, chart extraction,
+  object detection, and frontend web debugging from screenshots.
+  Use this skill whenever the user shares or references an image file (.jpg, .jpeg,
+  .png, .gif, .webp, .bmp, .svg), even if they casually mention a screenshot, photo,
+  or picture without naming the format. Also use for: extracting text from images,
+  reviewing UI mockups or designs, reading charts or graphs, identifying objects in
+  photos, debugging frontend layouts from browser screenshots, and visual regression
+  analysis. The skill's MCP tools handle image analysis far better than the Read tool,
+  so prefer them for any visual content.
 license: MIT
 metadata:
-  version: "2.1"
+  version: "2.2"
   category: ai-multimodal
   sources:
     - https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/image-understanding
@@ -21,7 +22,7 @@ metadata:
 
 ## Prerequisites
 
-Requires `mcp__mimo-multimodal__understand_image` tool. If not available, read `references/setup.md` and help the user configure the MCP server first — you will need to ask them for their API plan type (token plan vs standard API) and credentials.
+Requires `mcp__mimo-multimodal__understand_image` tool. If not available, read `references/setup.md` and help the user configure the MCP server — you will need to ask for their API plan type (token plan vs standard API) and credentials.
 
 ## Supported Formats
 
@@ -75,6 +76,11 @@ When doing frontend debugging, take a browser screenshot first (using available 
    - Fix: [CSS/code suggestion]
 ```
 
-## API Reference
+## Error Handling
+
+- **401 Unauthorized:** API key is invalid or expired — ask user to check their key
+- **413 Payload Too Large:** Image exceeds 50MB — ask user to compress or resize
+- **Connection timeout:** Check if `MIMO_API_BASE` URL is correct for the user's plan
+- **File not found:** Verify the file path exists; for URLs, ensure they are publicly accessible
 
 For direct API calls (without MCP), see `references/api-examples.md`.

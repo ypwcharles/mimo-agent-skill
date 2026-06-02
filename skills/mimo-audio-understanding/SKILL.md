@@ -1,15 +1,15 @@
 ---
 name: mimo-audio-understanding
 description: >
-  Analyze and transcribe audio using Xiaomi MiMo model. Supports speech-to-text
-  transcription, audio description, and content summarization.
-  ALWAYS use this skill when the user shares or references an audio file (.mp3, .wav,
-  .flac, .m4a, .ogg), even casually. Also use when the user asks to: transcribe a
-  recording, convert speech to text, describe what's in an audio file, summarize a
-  meeting recording or podcast, or generate meeting notes from audio.
+  Analyze and transcribe audio using Xiaomi MiMo model — speech-to-text transcription,
+  audio description, and content summarization.
+  Use this skill whenever the user shares or references an audio file (.mp3, .wav,
+  .flac, .m4a, .ogg), even casually. Also use for: transcribing recordings, converting
+  speech to text, describing audio content, summarizing meetings or podcasts, and
+  generating meeting notes from audio files.
 license: MIT
 metadata:
-  version: "2.1"
+  version: "2.2"
   category: ai-multimodal
   sources:
     - https://platform.xiaomimimo.com/docs/zh-CN/usage-guide/multimodal-understanding/audio-understanding
@@ -19,7 +19,7 @@ metadata:
 
 ## Prerequisites
 
-Requires `mcp__mimo-multimodal__understand_audio` tool. If not available, read `references/setup.md` and help the user configure the MCP server first — you will need to ask them for their API plan type (token plan vs standard API) and credentials.
+Requires `mcp__mimo-multimodal__understand_audio` tool. If not available, read `references/setup.md` and help the user configure the MCP server — you will need to ask for their API plan type (token plan vs standard API) and credentials.
 
 ## Supported Formats
 
@@ -65,6 +65,11 @@ Token estimation: `tokens ≈ duration_seconds × 6.25`
 - Audio format variants are numerous — not all files are guaranteed to be recognized
 - The MCP server converts local files to Base64 automatically
 
-## API Reference
+## Error Handling
+
+- **401 Unauthorized:** API key is invalid or expired — ask user to check their key
+- **413 Payload Too Large:** Audio exceeds size limits (100MB URL / 50MB Base64)
+- **Connection timeout:** Check if `MIMO_API_BASE` URL is correct for the user's plan
+- **Unrecognized format:** Some audio codec variants may not be supported — try converting to standard MP3 or WAV
 
 For direct API calls (without MCP), see `references/api-examples.md`.
