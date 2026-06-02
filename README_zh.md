@@ -1,0 +1,175 @@
+# MiMo Multimodal Skills
+
+[English](./README.md)
+
+基于[小米 MiMo](https://platform.xiaomimimo.com) 的 AI 编程工具多模态技能与 MCP 服务器。分析图片、音频、视频，并生成语音 — 支持 Claude Code、Cursor、Codex、OpenCode 等所有支持 MCP 或 Agent Skills 的工具。
+
+## 技能列表
+
+### mimo-image-understanding
+
+使用 MiMo 视觉模型分析图片。OCR 文字识别、UI 评审、图表数据提取、物体检测、前端截图调试。
+
+**适用场景：**
+- 用户分享了图片文件（.jpg, .png, .gif, .webp, .bmp）
+- 从截图或文档中提取文字（OCR）
+- 评审 UI 设计稿、线框图
+- 从图表中提取数据
+- 识别图片中的物体、人物或活动
+- 从浏览器截图调试前端布局问题
+
+**支持格式：** JPEG, PNG, GIF, WebP, BMP（最大 50MB）
+
+### mimo-audio-understanding
+
+使用 MiMo 分析和转写音频。语音转文字、音频描述、内容摘要。
+
+**适用场景：**
+- 用户分享了音频文件（.mp3, .wav, .flac, .m4a, .ogg）
+- 转写会议录音或语音备忘
+- 描述音频内容（语音、音乐、环境声）
+- 总结长录音或播客
+
+**支持格式：** MP3, WAV, FLAC, M4A, OGG（URL 最大 100MB / Base64 最大 50MB）
+
+### mimo-video-understanding
+
+分析和理解视频内容。场景描述、视频摘要、带时间戳的动作检测。
+
+**适用场景：**
+- 用户分享了视频文件（.mp4, .mov, .avi, .wmv）
+- 总结教程、讲座或长视频
+- 逐场景描述视频内容
+- 识别并标记特定动作或事件
+
+**支持格式：** MP4, MOV, AVI, WMV（URL 最大 300MB / Base64 最大 50MB）
+
+### mimo-tts
+
+将文本转换为语音，支持预设音色、自定义声音设计、声音克隆。支持标签控制风格和唱歌模式。
+
+**适用场景：**
+- 用户要求将文本转为语音/音频
+- 生成带有特定风格或情感的配音
+- 从音频样本克隆声音
+- 通过文字描述创建自定义声音
+- 生成唱歌人声
+
+**3 个模型：** `mimo-v2.5-tts`（预设音色）、`mimo-v2.5-tts-voicedesign`（文字描述生成声音）、`mimo-v2.5-tts-voiceclone`（样本克隆声音）
+
+## 安装
+
+### 前置条件
+
+- [Node.js](https://nodejs.org/) 18+
+- MiMo API 密钥 — 在 [platform.xiaomimimo.com](https://platform.xiaomimimo.com) 注册获取
+- MiMo API 基础 URL — 官方小米端点为 `https://api.xiaomimimo.com/v1`；如使用第三方提供商请查阅其文档
+
+### 第一步：克隆并构建
+
+```bash
+git clone https://github.com/<your-org>/mimo-multimodal.git
+cd mimo-multimodal/mcp-server
+npm install
+npm run build
+```
+
+### 第二步：注册 MCP 服务器
+
+**Claude Code：**
+```bash
+claude mcp add mimo-multimodal \
+  -e MIMO_API_BASE=https://api.xiaomimimo.com/v1 \
+  -e MIMO_API_KEY=你的API密钥 \
+  -- node /absolute/path/to/mcp-server/dist/index.js
+```
+
+**Cursor：** 其他平台请参见 [docs/setup.md](docs/setup.md)。
+
+### 第三步：安装技能
+
+```bash
+cp -r skills/mimo-* ~/.claude/skills/
+```
+
+重启 AI 工具。技能会在引用媒体文件时自动触发。
+
+## 工作原理
+
+```
+用户分享媒体文件
+        │
+        ▼
+  技能 SKILL.md 检测文件类型，
+  选择分析模式和提示词
+        │
+        ▼
+  MCP 服务器 (mcp-server/dist/index.js)
+  读取文件 → Base64，调用 MiMo API
+        │
+        ▼
+  MiMo API
+  mimo-v2.5（图片/音频/视频）
+  mimo-v2.5-tts（语音合成）
+        │
+        ▼
+  返回结构化结果给 AI Agent
+```
+
+## 环境变量
+
+| 变量 | 必填 | 说明 |
+|---|---|---|
+| `MIMO_API_BASE` | **是** | API 基础 URL（如 `https://api.xiaomimimo.com/v1`） |
+| `MIMO_API_KEY` | **是** | MiMo API 密钥 |
+
+## API 参考
+
+MiMo 提供 OpenAI 兼容和 Anthropic 兼容端点：
+
+| API | 基础 URL |
+|---|---|
+| OpenAI 兼容 | `https://api.xiaomimimo.com/v1` |
+| Anthropic 兼容 | `https://api.xiaomimimo.com/anthropic` |
+
+认证方式：`api-key` 请求头（不是 `Authorization: Bearer`）
+
+官方文档：[platform.xiaomimimo.com/docs](https://platform.xiaomimimo.com/docs)
+
+## 项目结构
+
+```
+mimo-multimodal/
+├── README.md / README_zh.md
+├── LICENSE
+├── docs/
+│   └── setup.md                          # 各平台设置指南
+├── skills/
+│   ├── mimo-image-understanding/
+│   │   └── SKILL.md
+│   ├── mimo-audio-understanding/
+│   │   └── SKILL.md
+│   ├── mimo-video-understanding/
+│   │   └── SKILL.md
+│   └── mimo-tts/
+│       └── SKILL.md
+└── mcp-server/
+    ├── package.json
+    ├── tsconfig.json
+    └── src/index.ts                       # MCP 服务器（图片、音频、视频、TTS）
+```
+
+## 常见问题
+
+| 问题 | 解决方案 |
+|---|---|
+| `MIMO_API_BASE environment variable is required` | 在 MCP 服务器配置中设置 `MIMO_API_BASE` |
+| `MIMO_API_KEY environment variable is required` | 在 MCP 服务器配置中设置 `MIMO_API_KEY` |
+| 工具未出现 | 确认服务器路径为绝对路径；重启 AI 工具 |
+| `401 Unauthorized` | 检查 API 密钥 |
+| `413 Payload Too Large` | 文件超出大小限制 |
+| `Cannot find module` 错误 | 在 `mcp-server/` 下运行 `npm install && npm run build` |
+
+## 许可证
+
+[MIT](./LICENSE)
