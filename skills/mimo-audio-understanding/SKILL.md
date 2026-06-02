@@ -21,7 +21,22 @@ Analyze and transcribe audio using the Xiaomi MiMo model. Covers speech-to-text 
 ## Prerequisites
 
 - MiMo multimodal MCP server running with `understand_audio` tool available
-- If the tool is NOT available, ask the user for their **API Base URL** and **API Key**, then help them set up the MCP server (see `references/setup.md`)
+- If the tool is NOT available, perform the following first-time setup:
+
+### First-time Setup
+
+Ask the user these questions **before** configuring:
+
+1. **Which plan are you using?**
+   - **Token Plan** (token 套餐) — uses a dedicated token plan endpoint (e.g. `https://token-plan-cn.xiaomimimo.com/v1`)
+   - **Standard API** (标准 API 调用) — uses the standard endpoint `https://api.xiaomimimo.com/v1`
+   - **Third-party provider** — uses the provider's own endpoint
+
+2. **What is your API Base URL?** — based on their answer above, confirm the exact URL. Do NOT assume or guess.
+
+3. **What is your API Key?**
+
+Then help them register the MCP server with both `MIMO_API_BASE` and `MIMO_API_KEY`. See `references/setup.md` for the exact commands.
 
 ## Supported Formats
 

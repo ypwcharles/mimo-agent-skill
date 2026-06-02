@@ -63,7 +63,10 @@ Convert text to speech with preset voices, custom voice design, or voice cloning
 
 - [Node.js](https://nodejs.org/) 18+
 - A MiMo API key — sign up at [platform.xiaomimimo.com](https://platform.xiaomimimo.com)
-- Your MiMo API base URL — `https://api.xiaomimimo.com/v1` for official Xiaomi endpoint; check your provider's docs if using a third-party
+- Your MiMo API base URL — there are two types:
+  - **Token Plan** (token 套餐): dedicated endpoint shown in your token plan console (e.g. `https://token-plan-cn.xiaomimimo.com/v1`)
+  - **Standard API**: `https://api.xiaomimimo.com/v1`
+  - Check your console to confirm which one applies to your account
 
 ### Step 1: Clone and build
 
@@ -79,10 +82,12 @@ npm run build
 **Claude Code:**
 ```bash
 claude mcp add mimo-multimodal \
-  -e MIMO_API_BASE=https://api.xiaomimimo.com/v1 \
+  -e MIMO_API_BASE=your-api-base-url \
   -e MIMO_API_KEY=your-api-key \
   -- node /absolute/path/to/mcp-server/dist/index.js
 ```
+
+> Replace `your-api-base-url` with your actual endpoint — token plan URL or `https://api.xiaomimimo.com/v1`.
 
 **Cursor:** See [docs/setup.md](docs/setup.md) for all platforms.
 
@@ -120,7 +125,7 @@ User shares media file
 
 | Variable | Required | Description |
 |---|---|---|
-| `MIMO_API_BASE` | **Yes** | API base URL (e.g. `https://api.xiaomimimo.com/v1`) |
+| `MIMO_API_BASE` | **Yes** | API base URL — token plan endpoint or `https://api.xiaomimimo.com/v1` |
 | `MIMO_API_KEY` | **Yes** | Your MiMo API key |
 
 ## API Reference

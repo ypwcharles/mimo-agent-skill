@@ -63,7 +63,10 @@
 
 - [Node.js](https://nodejs.org/) 18+
 - MiMo API 密钥 — 在 [platform.xiaomimimo.com](https://platform.xiaomimimo.com) 注册获取
-- MiMo API 基础 URL — 官方小米端点为 `https://api.xiaomimimo.com/v1`；如使用第三方提供商请查阅其文档
+- MiMo API 基础 URL — 有两种类型：
+  - **Token 套餐**：在你的 token 套餐控制台查看专属端点（如 `https://token-plan-cn.xiaomimimo.com/v1`）
+  - **标准 API**：`https://api.xiaomimimo.com/v1`
+  - 请在控制台确认你的账户使用哪种端点
 
 ### 第一步：克隆并构建
 
@@ -79,10 +82,12 @@ npm run build
 **Claude Code：**
 ```bash
 claude mcp add mimo-multimodal \
-  -e MIMO_API_BASE=https://api.xiaomimimo.com/v1 \
+  -e MIMO_API_BASE=你的API基础URL \
   -e MIMO_API_KEY=你的API密钥 \
   -- node /absolute/path/to/mcp-server/dist/index.js
 ```
+
+> 将 `你的API基础URL` 替换为你的实际端点 — token 套餐的专属 URL 或 `https://api.xiaomimimo.com/v1`。
 
 **Cursor：** 其他平台请参见 [docs/setup.md](docs/setup.md)。
 
@@ -120,7 +125,7 @@ cp -r skills/mimo-* ~/.claude/skills/
 
 | 变量 | 必填 | 说明 |
 |---|---|---|
-| `MIMO_API_BASE` | **是** | API 基础 URL（如 `https://api.xiaomimimo.com/v1`） |
+| `MIMO_API_BASE` | **是** | API 基础 URL — token 套餐端点或 `https://api.xiaomimimo.com/v1` |
 | `MIMO_API_KEY` | **是** | MiMo API 密钥 |
 
 ## API 参考

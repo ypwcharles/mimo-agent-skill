@@ -7,9 +7,18 @@ Works with any AI coding tool that supports MCP (Claude Code, Cursor, Codex, Ope
 Sign up at [platform.xiaomimimo.com](https://platform.xiaomimimo.com) and obtain:
 
 - **API Key** — from the developer console
-- **API Base URL** — `https://api.xiaomimimo.com/v1`
+- **API Base URL** — see below for the two types
 
-> **Note:** Different providers or plans may use different endpoints. Use the URL from your own provider's documentation.
+### Two types of API Base URL
+
+MiMo has two different endpoints depending on your plan:
+
+| Plan | Base URL | Description |
+|---|---|---|
+| **Token Plan** (token 套餐) | e.g. `https://token-plan-cn.xiaomimimo.com/v1` | Dedicated endpoint for token plan users. Your exact URL is shown in your token plan console. |
+| **Standard API** (标准 API) | `https://api.xiaomimimo.com/v1` | Standard pay-as-you-go endpoint |
+
+> **Important:** These are two different endpoints. Using the wrong one will result in authentication errors. Check your console to confirm which URL applies to your account. If you use a third-party provider, use their endpoint instead.
 
 ## 2. Build the MCP Server
 
@@ -25,10 +34,12 @@ npm run build
 
 ```bash
 claude mcp add mimo-multimodal \
-  -e MIMO_API_BASE=https://api.xiaomimimo.com/v1 \
+  -e MIMO_API_BASE=your-api-base-url \
   -e MIMO_API_KEY=your-api-key \
   -- node /absolute/path/to/mcp-server/dist/index.js
 ```
+
+> Replace `your-api-base-url` with your actual endpoint (token plan URL or `https://api.xiaomimimo.com/v1`).
 
 ### Cursor
 
@@ -41,7 +52,7 @@ Add to `.cursor/mcp.json`:
       "command": "node",
       "args": ["/absolute/path/to/mcp-server/dist/index.js"],
       "env": {
-        "MIMO_API_BASE": "https://api.xiaomimimo.com/v1",
+        "MIMO_API_BASE": "your-api-base-url",
         "MIMO_API_KEY": "your-api-key"
       }
     }
@@ -60,7 +71,7 @@ Add to your tool's MCP settings:
       "command": "node",
       "args": ["/absolute/path/to/mcp-server/dist/index.js"],
       "env": {
-        "MIMO_API_BASE": "https://api.xiaomimimo.com/v1",
+        "MIMO_API_BASE": "your-api-base-url",
         "MIMO_API_KEY": "your-api-key"
       }
     }
