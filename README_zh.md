@@ -36,6 +36,8 @@
 
 **支持格式：** MP3, WAV, FLAC, M4A, OGG（URL 最大 100MB / Base64 最大 50MB）
 
+**时长限制：** Token 估算公式 `tokens ≈ 秒数 × 6.25`。建议将超过 5 分钟的音频切分为 2-3 分钟的小段处理，避免超时。详见 [SKILL.md](skills/mimo-audio-understanding/SKILL.md)。
+
 ### mimo-video-understanding
 
 分析和理解视频内容。场景描述、视频摘要、带时间戳的动作检测。

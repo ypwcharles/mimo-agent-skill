@@ -36,6 +36,8 @@ Analyze and transcribe audio using MiMo. Speech-to-text, audio description, cont
 
 **Supported formats:** MP3, WAV, FLAC, M4A, OGG (max 100MB URL / 50MB Base64)
 
+**Duration limits:** Token estimation: `tokens ≈ duration_seconds × 6.25`. For audio > 5 minutes, split into 2-3 minute chunks to avoid timeouts. See [SKILL.md](skills/mimo-audio-understanding/SKILL.md) for chunking strategy.
+
 ### mimo-video-understanding
 
 Analyze and understand video content. Scene description, video summarization, action detection with timestamps.
