@@ -29,6 +29,30 @@ MP3, WAV, FLAC, M4A, OGG
 
 Token estimation: `tokens ≈ duration_seconds × 6.25`
 
+## Duration Limits & Chunking Strategy
+
+| Duration | Tokens (approx) | Reliability |
+|---|---|---|
+| < 2 min | < 750 | High — almost always succeeds |
+| 2-5 min | 750-1,875 | Good — usually succeeds |
+| 5-10 min | 1,875-3,750 | Moderate — may timeout |
+| 10-20 min | 3,750-7,500 | Low — frequently times out |
+| > 20 min | > 7,500 | Unreliable — very likely to timeout |
+
+**For audio > 5 minutes, always split into chunks first:**
+
+```bash
+# Compress (voice-only): mono, 16kHz, 64kbps
+ffmpeg -i input.m4a -ar 16000 -ac 1 -b:a 64k input_compressed.mp3
+
+# Split into 2-minute chunks
+ffmpeg -i input_compressed.mp3 -f segment -segment_time 120 -c copy chunk_%02d.mp3
+```
+
+Process each chunk separately, then combine results. On timeout (`MCP error -32001`), retry the same chunk 1-2 times before reducing chunk size.
+
+**Speaker diarization across chunks:** Include speaker names in each chunk's prompt. Process sequentially to maintain speaker identity consistency.
+
 ## Analysis Modes
 
 | Mode | When to use | Prompt |
