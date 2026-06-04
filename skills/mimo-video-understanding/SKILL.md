@@ -4,9 +4,10 @@ description: >
   Analyze and understand video content using Xiaomi MiMo model — scene description,
   video summarization, and action detection with timestamps.
   Use this skill whenever the user shares or references a video file (.mp4, .mov,
-  .avi, .wmv), even casually. Also use for: describing video content, summarizing
-  tutorials or lectures, identifying actions in footage, extracting key moments, and
-  analyzing screen recordings.
+  .avi, .wmv), a Base64-encoded video string, or a data URI
+  (data:video/...;base64,...), even casually. Also use for: describing video content,
+  summarizing tutorials or lectures, identifying actions in footage, extracting key
+  moments, and analyzing screen recordings.
 license: MIT
 metadata:
   version: "2.2"
@@ -27,6 +28,8 @@ MP4, MOV, AVI, WMV
 - URL input: max 300MB per file
 - Base64 input: max 50MB per encoded string
 
+**Input types:** local file path, public URL, `data:video/...;base64,...` data URI, or raw Base64 string. The MCP tool auto-detects the input type and converts as needed.
+
 ## Parameters
 
 | Parameter | Default | Range | Description |
@@ -46,7 +49,7 @@ MP4, MOV, AVI, WMV
 
 ## Workflow
 
-1. Detect video files by extension: `.mp4`, `.mov`, `.avi`, `.wmv`
+1. Detect video inputs: local file paths (`.mp4`, `.mov`, `.avi`, `.wmv`), public URLs, `data:video/...` data URIs, or raw Base64 strings
 2. Select the analysis mode and choose `fps` / `media_resolution` based on content
 3. Call `mcp__mimo-multimodal__understand_video` with the file path/URL and prompt
 4. Present results in the format below

@@ -4,7 +4,8 @@ description: >
   Analyze images using Xiaomi MiMo vision model — OCR, UI review, chart extraction,
   object detection, and frontend web debugging from screenshots.
   Use this skill whenever the user shares or references an image file (.jpg, .jpeg,
-  .png, .gif, .webp, .bmp, .svg), even if they casually mention a screenshot, photo,
+  .png, .gif, .webp, .bmp, .svg), a Base64-encoded image string, or a data URI
+  (data:image/...;base64,...), even if they casually mention a screenshot, photo,
   or picture without naming the format. Also use for: extracting text from images,
   reviewing UI mockups or designs, reading charts or graphs, identifying objects in
   photos, debugging frontend layouts from browser screenshots, and visual regression
@@ -26,7 +27,9 @@ Requires `mcp__mimo-multimodal__understand_image` tool. If not available, read `
 
 ## Supported Formats
 
-JPEG, PNG, GIF, WebP, BMP — max 50MB per image (URL or Base64). Multiple images can be sent in one request for comparison.
+JPEG, PNG, GIF, WebP, BMP — max 50MB per image.
+
+**Input types:** local file path, public URL, `data:image/...;base64,...` data URI, or raw Base64 string. The MCP tool auto-detects the input type and converts as needed.
 
 ## Analysis Modes
 
@@ -41,7 +44,7 @@ JPEG, PNG, GIF, WebP, BMP — max 50MB per image (URL or Base64). Multiple image
 
 ## Workflow
 
-1. Detect image files by extension: `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`, `.svg`
+1. Detect image inputs: local file paths (`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`), public URLs, `data:image/...` data URIs, or raw Base64 strings
 2. Select the analysis mode based on context (or ask the user what they need)
 3. Call `mcp__mimo-multimodal__understand_image` with the file path/URL and the mode's prompt
 4. Present results in the format below

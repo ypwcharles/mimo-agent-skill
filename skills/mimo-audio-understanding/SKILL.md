@@ -4,9 +4,10 @@ description: >
   Analyze and transcribe audio using Xiaomi MiMo model — speech-to-text transcription,
   audio description, and content summarization.
   Use this skill whenever the user shares or references an audio file (.mp3, .wav,
-  .flac, .m4a, .ogg), even casually. Also use for: transcribing recordings, converting
-  speech to text, describing audio content, summarizing meetings or podcasts, and
-  generating meeting notes from audio files.
+  .flac, .m4a, .ogg), a Base64-encoded audio string, or a data URI
+  (data:audio/...;base64,...), even casually. Also use for: transcribing recordings,
+  converting speech to text, describing audio content, summarizing meetings or
+  podcasts, and generating meeting notes from audio files.
 license: MIT
 metadata:
   version: "2.2"
@@ -26,6 +27,8 @@ Requires `mcp__mimo-multimodal__understand_audio` tool. If not available, read `
 MP3, WAV, FLAC, M4A, OGG
 - URL input: max 100MB per file
 - Base64 input: max 50MB per encoded string
+
+**Input types:** local file path, public URL, `data:audio/...;base64,...` data URI, or raw Base64 string. The MCP tool auto-detects the input type and converts as needed.
 
 Token estimation: `tokens ≈ duration_seconds × 6.25`
 
@@ -63,7 +66,7 @@ Process each chunk separately, then combine results. On timeout (`MCP error -320
 
 ## Workflow
 
-1. Detect audio files by extension: `.mp3`, `.wav`, `.flac`, `.m4a`, `.ogg`
+1. Detect audio inputs: local file paths (`.mp3`, `.wav`, `.flac`, `.m4a`, `.ogg`), public URLs, `data:audio/...` data URIs, or raw Base64 strings
 2. Select the analysis mode based on context
 3. Call `mcp__mimo-multimodal__understand_audio` with the file path/URL and the mode's prompt
 4. Present results in the format below

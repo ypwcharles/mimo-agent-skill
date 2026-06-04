@@ -47,6 +47,36 @@ function isUrl(source: string): boolean {
   return source.startsWith("http://") || source.startsWith("https://");
 }
 
+function isDataUri(source: string): boolean {
+  return source.startsWith("data:");
+}
+
+function parseDataUri(uri: string): { mediaType: string; data: string } {
+  const match = uri.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error("Invalid data URI format");
+  return { mediaType: match[1], data: match[2] };
+}
+
+const MAGIC_BYTES: Array<{ mime: string; bytes: number[] }> = [
+  { mime: "image/png", bytes: [0x89, 0x50, 0x4e, 0x47] },
+  { mime: "image/jpeg", bytes: [0xff, 0xd8, 0xff] },
+  { mime: "image/gif", bytes: [0x47, 0x49, 0x46] },
+  { mime: "image/webp", bytes: [0x52, 0x49, 0x46, 0x46] },
+  { mime: "image/bmp", bytes: [0x42, 0x4d] },
+  { mime: "audio/mpeg", bytes: [0xff, 0xfb] },
+  { mime: "audio/flac", bytes: [0x66, 0x4c, 0x61, 0x43] },
+  { mime: "audio/ogg", bytes: [0x4f, 0x67, 0x67, 0x53] },
+  { mime: "video/mp4", bytes: [0x00, 0x00, 0x00] },
+];
+
+function detectMediaType(b64: string): string {
+  const buf = Buffer.from(b64.slice(0, 16), "base64");
+  for (const { mime, bytes } of MAGIC_BYTES) {
+    if (bytes.every((b, i) => buf[i] === b)) return mime;
+  }
+  return "application/octet-stream";
+}
+
 function fileToBase64DataUri(filePath: string): string {
   const { mediaType, data } = fileToBase64(filePath);
   return `data:${mediaType};base64,${data}`;
@@ -190,18 +220,25 @@ server.tool(
   {
     source: z
       .string()
-      .describe("Local file path or public URL of the image (JPEG, PNG, GIF, WebP, BMP, max 50MB)"),
+      .describe("Local file path, public URL, data URI, or raw Base64 string of the image (JPEG, PNG, GIF, WebP, BMP, max 50MB)"),
     prompt: z
       .string()
       .describe("What to analyze or describe about the image"),
   },
   async ({ source, prompt }) => {
-    const imageBlock = isUrl(source)
-      ? { type: "image" as const, source: { type: "url" as const, url: source } }
-      : (() => {
-          const { mediaType, data } = fileToBase64(source);
-          return { type: "image" as const, source: { type: "base64" as const, media_type: mediaType, data } };
-        })();
+    let imageBlock: any;
+    if (isUrl(source)) {
+      imageBlock = { type: "image", source: { type: "url", url: source } };
+    } else if (isDataUri(source)) {
+      const { mediaType, data } = parseDataUri(source);
+      imageBlock = { type: "image", source: { type: "base64", media_type: mediaType, data } };
+    } else if (/^[A-Za-z0-9+/=\s]{100,}$/.test(source.replace(/\s/g, ""))) {
+      const data = source.replace(/\s/g, "");
+      imageBlock = { type: "image", source: { type: "base64", media_type: detectMediaType(data), data } };
+    } else {
+      const { mediaType, data } = fileToBase64(source);
+      imageBlock = { type: "image", source: { type: "base64", media_type: mediaType, data } };
+    }
     const text = await withFallback((model) => callMiMoAnthropic(model, [
       {
         role: "user",
@@ -219,13 +256,23 @@ server.tool(
   {
     source: z
       .string()
-      .describe("Local file path or public URL of the audio (MP3, WAV, FLAC, M4A, OGG, max 100MB for URL, max 50MB for Base64)"),
+      .describe("Local file path, public URL, data URI, or raw Base64 string of the audio (MP3, WAV, FLAC, M4A, OGG, max 100MB for URL, max 50MB for Base64)"),
     prompt: z
       .string()
       .describe("What to analyze or describe about the audio"),
   },
   async ({ source, prompt }) => {
-    const audioData = isUrl(source) ? source : fileToBase64DataUri(source);
+    let audioData: string;
+    if (isUrl(source)) {
+      audioData = source;
+    } else if (isDataUri(source)) {
+      audioData = source;
+    } else if (/^[A-Za-z0-9+/=\s]{100,}$/.test(source.replace(/\s/g, ""))) {
+      const data = source.replace(/\s/g, "");
+      audioData = `data:${detectMediaType(data)};base64,${data}`;
+    } else {
+      audioData = fileToBase64DataUri(source);
+    }
     const result = await withFallback((model) => callMiMo(model, [
       {
         role: "user",
@@ -246,7 +293,7 @@ server.tool(
   {
     source: z
       .string()
-      .describe("Local file path or public URL of the video (MP4, MOV, AVI, WMV, max 300MB for URL, max 50MB for Base64)"),
+      .describe("Local file path, public URL, data URI, or raw Base64 string of the video (MP4, MOV, AVI, WMV, max 300MB for URL, max 50MB for Base64)"),
     prompt: z
       .string()
       .describe("What to analyze or describe about the video"),
@@ -262,7 +309,17 @@ server.tool(
       .describe("Per-frame resolution tier: 'default' (balanced) or 'max' (highest detail for small objects/textures)"),
   },
   async ({ source, prompt, fps, media_resolution }) => {
-    const videoUrl = isUrl(source) ? source : fileToBase64DataUri(source);
+    let videoUrl: string;
+    if (isUrl(source)) {
+      videoUrl = source;
+    } else if (isDataUri(source)) {
+      videoUrl = source;
+    } else if (/^[A-Za-z0-9+/=\s]{100,}$/.test(source.replace(/\s/g, ""))) {
+      const data = source.replace(/\s/g, "");
+      videoUrl = `data:${detectMediaType(data)};base64,${data}`;
+    } else {
+      videoUrl = fileToBase64DataUri(source);
+    }
     const result = await withFallback((model) => callMiMo(model, [
       {
         role: "user",
