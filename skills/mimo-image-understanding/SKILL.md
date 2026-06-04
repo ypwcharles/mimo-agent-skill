@@ -4,8 +4,9 @@ description: >
   Analyze images using Xiaomi MiMo vision model — OCR, UI review, chart extraction,
   object detection, and frontend web debugging from screenshots.
   Use this skill whenever the user shares or references an image file (.jpg, .jpeg,
-  .png, .gif, .webp, .bmp, .svg), a Base64-encoded image string, or a data URI
-  (data:image/...;base64,...), even if they casually mention a screenshot, photo,
+  .png, .gif, .webp, .bmp, .svg), a Base64-encoded image string, a data URI
+  (data:image/...;base64,...), or a Claude Code image-cache hash reference
+  (claude-cache-sha256:<hash>), even if they casually mention a screenshot, photo,
   or picture without naming the format. Also use for: extracting text from images,
   reviewing UI mockups or designs, reading charts or graphs, identifying objects in
   photos, debugging frontend layouts from browser screenshots, and visual regression
@@ -29,7 +30,7 @@ Requires `mcp__mimo-multimodal__understand_image` tool. If not available, read `
 
 JPEG, PNG, GIF, WebP, BMP — max 50MB per image.
 
-**Input types:** local file path, public URL, `data:image/...;base64,...` data URI, or raw Base64 string. The MCP tool auto-detects the input type and converts as needed.
+**Input types:** local file path, public URL, `data:image/...;base64,...` data URI, raw Base64 string, or `claude-cache-sha256:<hash>` reference. The MCP tool auto-detects the input type and converts as needed.
 
 ## Analysis Modes
 
@@ -44,7 +45,7 @@ JPEG, PNG, GIF, WebP, BMP — max 50MB per image.
 
 ## Workflow
 
-1. Detect image inputs: local file paths (`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`), public URLs, `data:image/...` data URIs, or raw Base64 strings
+1. Detect image inputs: local file paths (`.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`, `.bmp`), public URLs, `data:image/...` data URIs, raw Base64 strings, or `claude-cache-sha256:<hash>` references
 2. Select the analysis mode based on context (or ask the user what they need)
 3. Call `mcp__mimo-multimodal__understand_image` with the file path/URL and the mode's prompt
 4. Present results in the format below
@@ -85,5 +86,17 @@ When doing frontend debugging, take a browser screenshot first (using available 
 - **413 Payload Too Large:** Image exceeds 50MB — ask user to compress or resize
 - **Connection timeout:** Check if `MIMO_API_BASE` URL is correct for the user's plan
 - **File not found:** Verify the file path exists; for URLs, ensure they are publicly accessible
+- **Claude cache reference not found:** The MCP server checks image files and recent Claude transcripts in parallel. If needed, set `MIMO_IMAGE_LOOKUP_DIRS` for image files or `MIMO_CLAUDE_TRANSCRIPT_DIRS` for Claude Desktop/Claude Code transcript folders
+
+## Performance Knobs
+
+- `MIMO_DEBUG_TIMING=1`: log resolver and MiMo API timings to stderr
+- `MIMO_IMAGE_LOOKUP_FILES`: max image files to inspect while resolving cache refs; defaults to 5000
+- `MIMO_IMAGE_CACHE_WRITE_DIR`: local directory for resolved Claude images; defaults to `~/.claude/image-cache`
+- `MIMO_DISABLE_IMAGE_CACHE_WRITE=1`: disable local cache writes
+- `MIMO_CLAUDE_TRANSCRIPT_DIRS`: Claude transcript directories to search; defaults to `~/.claude/projects`
+- `MIMO_CLAUDE_FAST_TRANSCRIPT_FILES`: number of recent transcript files to scan first; defaults to 10
+- `MIMO_CLAUDE_TRANSCRIPT_FILES`: max transcript files to scan; defaults to 120
+- `MIMO_CLAUDE_TRANSCRIPT_BYTES`: max bytes per transcript file; defaults to 120MB
 
 For direct API calls (without MCP), see `references/api-examples.md`.
