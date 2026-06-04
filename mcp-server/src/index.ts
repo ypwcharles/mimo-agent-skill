@@ -45,6 +45,11 @@ function isUrl(source: string): boolean {
 }
 
 function fileToBase64DataUri(filePath: string): string {
+  const { mediaType, data } = fileToBase64(filePath);
+  return `data:${mediaType};base64,${data}`;
+}
+
+function fileToBase64(filePath: string): { mediaType: string; data: string } {
   if (!existsSync(filePath)) {
     throw new Error(`File not found: ${filePath}`);
   }
@@ -52,9 +57,18 @@ function fileToBase64DataUri(filePath: string): string {
   if (!stat.isFile()) {
     throw new Error(`Not a file: ${filePath}`);
   }
-  const mime = getMimeType(filePath);
+  const mediaType = getMimeType(filePath);
   const data = readFileSync(filePath).toString("base64");
-  return `data:${mime};base64,${data}`;
+  return { mediaType, data };
+}
+
+function getOpenAIApiUrl(): string {
+  return API_BASE!.replace(/\/chat\/completions\/?$/, "");
+}
+
+function getAnthropicApiUrl(): string {
+  const base = API_BASE!.replace(/\/v1\/chat\/completions\/?$/, "");
+  return `${base}/anthropic/v1/messages`;
 }
 
 async function callMiMo(
@@ -72,7 +86,7 @@ async function callMiMo(
     body.audio = audio;
   }
 
-  const res = await fetch(API_BASE, {
+  const res = await fetch(getOpenAIApiUrl(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -104,11 +118,58 @@ async function callMiMo(
   };
 }
 
+async function callMiMoAnthropic(
+  model: string,
+  messages: Array<{ role: string; content: any }>,
+  maxTokens = 4096,
+  system?: string
+): Promise<string> {
+  const body: any = {
+    model,
+    messages,
+    max_tokens: maxTokens,
+    thinking: { type: "disabled" },
+  };
+  if (system) {
+    body.system = system;
+  }
+
+  const res = await fetch(getAnthropicApiUrl(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "api-key": API_KEY!,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`MiMo Anthropic API error ${res.status}: ${errText}`);
+  }
+
+  const data = await res.json() as any;
+  const contentBlocks: any[] = data.content || [];
+  if (!contentBlocks.length) throw new Error("No response from MiMo Anthropic API");
+
+  const parts: string[] = [];
+  for (const block of contentBlocks) {
+    if (block.type === "thinking" && block.thinking) {
+      parts.push(`[Reasoning]\n${block.thinking}`);
+    }
+    if (block.type === "text" && block.text) {
+      parts.push(block.text);
+    }
+  }
+
+  return parts.join("\n\n") || "(empty response)";
+}
+
 // --- MCP Server ---
 
 const server = new McpServer({
   name: "mimo-multimodal",
-  version: "2.0.0",
+  version: "2.1.0",
 });
 
 // Image understanding
@@ -124,17 +185,19 @@ server.tool(
       .describe("What to analyze or describe about the image"),
   },
   async ({ source, prompt }) => {
-    const imageUrl = isUrl(source) ? source : fileToBase64DataUri(source);
-    const result = await callMiMo("mimo-v2.5", [
+    const imageBlock = isUrl(source)
+      ? { type: "image" as const, source: { type: "url" as const, url: source } }
+      : (() => {
+          const { mediaType, data } = fileToBase64(source);
+          return { type: "image" as const, source: { type: "base64" as const, media_type: mediaType, data } };
+        })();
+    const text = await callMiMoAnthropic("mimo-v2.5", [
       {
         role: "user",
-        content: [
-          { type: "image_url", image_url: { url: imageUrl } },
-          { type: "text", text: prompt },
-        ],
+        content: [imageBlock, { type: "text", text: prompt }],
       },
     ]);
-    return { content: [{ type: "text", text: result.text }] };
+    return { content: [{ type: "text", text }] };
   }
 );
 
