@@ -17,6 +17,9 @@ if (!API_KEY) {
   process.exit(1);
 }
 
+const PRIMARY_MODEL = "mimo-v2.5";
+const FALLBACK_MODEL = "mimo-v2-omni";
+
 const MIME_MAP: Record<string, string> = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -165,6 +168,14 @@ async function callMiMoAnthropic(
   return parts.join("\n\n") || "(empty response)";
 }
 
+async function withFallback<T>(fn: (model: string) => Promise<T>): Promise<T> {
+  try {
+    return await fn(PRIMARY_MODEL);
+  } catch {
+    return await fn(FALLBACK_MODEL);
+  }
+}
+
 // --- MCP Server ---
 
 const server = new McpServer({
@@ -191,12 +202,12 @@ server.tool(
           const { mediaType, data } = fileToBase64(source);
           return { type: "image" as const, source: { type: "base64" as const, media_type: mediaType, data } };
         })();
-    const text = await callMiMoAnthropic("mimo-v2.5", [
+    const text = await withFallback((model) => callMiMoAnthropic(model, [
       {
         role: "user",
         content: [imageBlock, { type: "text", text: prompt }],
       },
-    ]);
+    ]));
     return { content: [{ type: "text", text }] };
   }
 );
@@ -215,7 +226,7 @@ server.tool(
   },
   async ({ source, prompt }) => {
     const audioData = isUrl(source) ? source : fileToBase64DataUri(source);
-    const result = await callMiMo("mimo-v2.5", [
+    const result = await withFallback((model) => callMiMo(model, [
       {
         role: "user",
         content: [
@@ -223,7 +234,7 @@ server.tool(
           { type: "text", text: prompt },
         ],
       },
-    ]);
+    ]));
     return { content: [{ type: "text", text: result.text }] };
   }
 );
@@ -252,7 +263,7 @@ server.tool(
   },
   async ({ source, prompt, fps, media_resolution }) => {
     const videoUrl = isUrl(source) ? source : fileToBase64DataUri(source);
-    const result = await callMiMo("mimo-v2.5", [
+    const result = await withFallback((model) => callMiMo(model, [
       {
         role: "user",
         content: [
@@ -265,7 +276,7 @@ server.tool(
           { type: "text", text: prompt },
         ],
       },
-    ]);
+    ]));
     return { content: [{ type: "text", text: result.text }] };
   }
 );
