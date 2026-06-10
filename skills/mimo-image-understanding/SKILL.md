@@ -32,6 +32,8 @@ JPEG, PNG, GIF, WebP, BMP — max 50MB per image.
 
 **Input types:** local file path, public URL, `data:image/...;base64,...` data URI, raw Base64 string, or `claude-cache-sha256:<hash>` reference. The MCP tool auto-detects the input type and converts as needed.
 
+> **Important:** Always pass the image as a file path string (e.g. `/Users/you/Desktop/photo.png`). Do NOT paste the image directly into the chat — the MCP tool cannot read inline images and will error.
+
 ## Analysis Modes
 
 | Mode | When to use | Prompt |

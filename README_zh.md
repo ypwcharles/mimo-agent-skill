@@ -24,6 +24,8 @@
 
 **支持格式：** JPEG, PNG, GIF, WebP, BMP（最大 50MB）
 
+> **使用提示：** 引用图片时，请提供本地文件路径字符串（如 `/Users/you/Desktop/screenshot.png`），而不是直接在聊天中粘贴图片。MCP 工具通过路径读取文件，直接粘贴图片会导致报错。
+
 ### mimo-audio-understanding
 
 使用 MiMo 分析和转写音频。语音转文字、音频描述、内容摘要。

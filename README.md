@@ -24,6 +24,8 @@ Analyze images using MiMo's vision model. OCR, UI review, chart data extraction,
 
 **Supported formats:** JPEG, PNG, GIF, WebP, BMP (max 50MB)
 
+> **Usage:** When referencing images, provide the local file path as a string (e.g. `/Users/you/Desktop/screenshot.png`) rather than pasting the image directly into the chat. The MCP tool reads files by path — pasting an image inline will cause an error.
+
 ### mimo-audio-understanding
 
 Analyze and transcribe audio using MiMo. Speech-to-text, audio description, content summarization.
