@@ -142,7 +142,8 @@ MiMo 提供 OpenAI 兼容和 Anthropic 兼容端点：
 
 | API | 基础 URL |
 |---|---|
-| OpenAI 兼容 | `https://api.xiaomimimo.com/v1` |
+| OpenAI 兼容（标准 API） | `https://api.xiaomimimo.com/v1` |
+| OpenAI 兼容（Token 套餐） | `https://token-plan-cn.xiaomimimo.com/v1` |
 | Anthropic 兼容 | `https://api.xiaomimimo.com/anthropic` |
 
 认证方式：`api-key` 请求头（不是 `Authorization: Bearer`）

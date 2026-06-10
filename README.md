@@ -142,7 +142,8 @@ MiMo provides OpenAI-compatible and Anthropic-compatible endpoints:
 
 | API | Base URL |
 |---|---|
-| OpenAI-compatible | `https://api.xiaomimimo.com/v1` |
+| OpenAI-compatible (Standard API) | `https://api.xiaomimimo.com/v1` |
+| OpenAI-compatible (Token Plan) | `https://token-plan-cn.xiaomimimo.com/v1` |
 | Anthropic-compatible | `https://api.xiaomimimo.com/anthropic` |
 
 Authentication: `api-key` header (not `Authorization: Bearer`)
