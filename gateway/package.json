@@ -1,0 +1,17 @@
+{
+  "name": "mimo-local-media-gateway",
+  "version": "0.1.0",
+  "description": "Local transparent gateway that converts Anthropic image blocks into claude-cache-sha256 references for MiMo text models. Zero runtime dependencies.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node --experimental-strip-types src/index.ts",
+    "start:bun": "bun src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types test/run-test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.8.0"
+  }
+}

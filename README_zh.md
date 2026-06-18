@@ -107,6 +107,56 @@ cp -r skills/mimo-* ~/.claude/skills/
 
 重启 AI 工具。技能会在引用媒体文件时自动触发。
 
+## 可选：本地媒体网关
+
+上面的技能假设 agent 给 MCP 工具的是图片**文件路径**。如果你的 agent 是**内联粘贴图片**（作为 content block），而主模型是 MiMo v2.5 Pro 这类纯文本模型，这些内联图片就到不了 MCP 工具。可选的 [`gateway/`](gateway/) 是一个轻量本地代理，自动解决这一点。
+
+它位于 agent 和 MiMo Anthropic 端点之间，把每个内联 `image` block 改写成短引用 `claude-cache-sha256:<hash>`，并把原图写入共享图片缓存。主模型随后调用 `understand_image(source="claude-cache-sha256:<hash>")`；MCP 从缓存按 hash 取回原图发给 MiMo v2.5。原始 base64 绝不进入文本模型上下文。
+
+```
+Agent (ANTHROPIC_BASE_URL=http://127.0.0.1:4199)
+  → 网关 (拦截内联 image → 原图落盘 → 生成 claude-cache-sha256:<hash>)
+  → MiMo Anthropic 端点 (api.xiaomimimo.com/anthropic)
+
+模型调用 understand_image(source="claude-cache-sha256:<hash>")
+  → MCP 从图片缓存按 hash 取图 → MiMo v2.5 (视觉)
+```
+
+**只有当** agent 向纯文本主模型发送内联图片时才需要网关。如果你的流程总是引用本地图片路径，可以跳过。
+
+### 配置与调用（快速开始）
+
+| 变量 | 必填 | 说明 |
+|---|:---:|---|
+| `MIMO_ANTHROPIC_BASE` | **是** | MiMo Anthropic 端点，如 `https://api.xiaomimimo.com/anthropic` |
+| `MIMO_API_KEY` | **是** | MiMo API key，以 `api-key` 头转发上游 |
+| `MIMO_IMAGE_CACHE_WRITE_DIR` | | 原图落盘目录，须在 MCP 查找目录中。默认 `~/.claude/image-cache`（MCP 默认就扫它 → 零额外配置） |
+| `GATEWAY_TOKEN` | | 入站鉴权 token；未设 = 不鉴权（仅本地） |
+| `PORT` / `HOST` | | 默认 `4199` / `127.0.0.1` |
+
+```bash
+cd gateway && npm install        # 运行时零依赖；install 仅为 typecheck/IDE
+MIMO_ANTHROPIC_BASE=https://api.xiaomimimo.com/anthropic \
+MIMO_API_KEY=sk-... npm start    # 或：bun src/index.ts
+```
+
+把 agent 指向网关（它会把请求以正确的 `api-key` 转发给 MiMo）：
+
+```jsonc
+// Claude Code 环境变量
+{ "ANTHROPIC_BASE_URL": "http://127.0.0.1:4199", "ANTHROPIC_API_KEY": "<GATEWAY_TOKEN 或任意值>" }
+```
+
+`mimo-multimodal` MCP server 仍需注册——网关**依赖**它解析引用，不替代它。
+
+### 开启 / 关闭 / 持久化运行
+
+- **开启**：`npm start`（前台）。
+- **关闭**：`Ctrl-C`（前台），或 `pkill -f gateway/src/index.ts`（后台）。
+- **持久化**：`nohup`、macOS `launchd` 或 Linux `systemd`——完整 plist/unit 文件见 [`gateway/README.md`](gateway/README.md)。
+
+完整参考、面向 AI agent 的配置指南、隔离自测，见 [`gateway/README.md`](gateway/README.md)。
+
 ## 工作原理
 
 ```
@@ -167,10 +217,12 @@ mimo-multimodal/
 │   │   └── SKILL.md
 │   └── mimo-tts/
 │       └── SKILL.md
-└── mcp-server/
-    ├── package.json
-    ├── tsconfig.json
-    └── src/index.ts                       # MCP 服务器（图片、音频、视频、TTS）
+├── mcp-server/
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── src/index.ts                       # MCP 服务器（图片、音频、视频、TTS）
+└── gateway/                               # 可选：本地媒体网关
+    └── README.md                           # 为纯文本模型代理内联图片
 ```
 
 ## 常见问题

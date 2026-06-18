@@ -107,6 +107,56 @@ cp -r skills/mimo-* ~/.claude/skills/
 
 Restart your AI tool. Skills auto-trigger when you reference media files.
 
+## Optional: Local Media Gateway
+
+The skills above assume the agent hands the MCP tool a **file path** for each image. If instead your agent **pastes images inline** (as content blocks) while the primary model is a text-only model like MiMo v2.5 Pro, those inline images never reach the MCP tool. The optional [`gateway/`](gateway/) is a tiny local proxy that fixes this automatically.
+
+It sits between your agent and the MiMo Anthropic endpoint, rewrites every inline `image` block into a short `claude-cache-sha256:<hash>` reference, and writes the original image into the shared image cache. The primary model then calls `understand_image(source="claude-cache-sha256:<hash>")`; the MCP server resolves the hash from the cache and sends the real image to MiMo v2.5. No raw Base64 ever enters the text model's context.
+
+```
+Agent (ANTHROPIC_BASE_URL=http://127.0.0.1:4199)
+  → gateway  (intercepts inline image → writes original to cache → emits claude-cache-sha256:<hash>)
+  → MiMo Anthropic endpoint  (api.xiaomimimo.com/anthropic)
+
+model calls understand_image(source="claude-cache-sha256:<hash>")
+  → MCP resolves the hash from the image cache → MiMo v2.5 (vision)
+```
+
+**You only need the gateway when** your agent sends inline images to a text-only primary model. If your workflow always references local image paths, skip it.
+
+### Configure & call (quick start)
+
+| Variable | Required | Description |
+|---|:---:|---|
+| `MIMO_ANTHROPIC_BASE` | **Yes** | MiMo Anthropic endpoint, e.g. `https://api.xiaomimimo.com/anthropic` |
+| `MIMO_API_KEY` | **Yes** | MiMo API key (forwarded upstream as `api-key`) |
+| `MIMO_IMAGE_CACHE_WRITE_DIR` | | Where resolved images are written; must be in the MCP's lookup dirs. Default `~/.claude/image-cache` (the MCP scans it by default → zero extra config) |
+| `GATEWAY_TOKEN` | | Inbound auth token; unset = no auth (local only) |
+| `PORT` / `HOST` | | `4199` / `127.0.0.1` by default |
+
+```bash
+cd gateway && npm install        # runtime has zero deps; install is for typecheck/IDE
+MIMO_ANTHROPIC_BASE=https://api.xiaomimimo.com/anthropic \
+MIMO_API_KEY=sk-... npm start    # or: bun src/index.ts
+```
+
+Point your agent at the gateway (it forwards to MiMo with the correct `api-key`):
+
+```jsonc
+// Claude Code env
+{ "ANTHROPIC_BASE_URL": "http://127.0.0.1:4199", "ANTHROPIC_API_KEY": "<GATEWAY_TOKEN or any value>" }
+```
+
+Keep the `mimo-multimodal` MCP server registered — the gateway **uses** it to resolve references; it does not replace it.
+
+### Start / stop / run persistently
+
+- **Start:** `npm start` (foreground).
+- **Stop:** `Ctrl-C` (foreground), or `pkill -f gateway/src/index.ts` (background).
+- **Persistent:** `nohup`, macOS `launchd`, or Linux `systemd` — full unit/plist files in [`gateway/README.md`](gateway/README.md).
+
+See [`gateway/README.md`](gateway/README.md) for the full reference, an AI-agent-oriented config guide, and an isolated self-test.
+
 ## How It Works
 
 ```
@@ -167,10 +217,12 @@ mimo-multimodal/
 │   │   └── SKILL.md
 │   └── mimo-tts/
 │       └── SKILL.md
-└── mcp-server/
-    ├── package.json
-    ├── tsconfig.json
-    └── src/index.ts                       # MCP server (image, audio, video, TTS)
+├── mcp-server/
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── src/index.ts                       # MCP server (image, audio, video, TTS)
+└── gateway/                               # OPTIONAL: local media gateway
+    └── README.md                           # inline-image proxy for text-only models
 ```
 
 ## Troubleshooting
