@@ -109,6 +109,8 @@ cp -r skills/mimo-* ~/.claude/skills/
 
 ## 可选：本地媒体网关
 
+> **注意 —— 仅 Claude Code：** 本网关只针对 **Claude Code** 做了适配和测试。其它 agent（Cursor、Codex、OpenCode 等）的请求形态不同，可能需要自行调整 `gateway/src/` 里的拦截/改写逻辑并重新验证后再使用。
+
 上面的技能假设 agent 给 MCP 工具的是图片**文件路径**。如果你的 agent 是**内联粘贴图片**（作为 content block），而主模型是 MiMo v2.5 Pro 这类纯文本模型，这些内联图片就到不了 MCP 工具。可选的 [`gateway/`](gateway/) 是一个轻量本地代理，自动解决这一点。
 
 它位于 agent 和 MiMo Anthropic 端点之间，把每个内联 `image` block 改写成短引用 `claude-cache-sha256:<hash>`，并把原图写入共享图片缓存。主模型随后调用 `understand_image(source="claude-cache-sha256:<hash>")`；MCP 从缓存按 hash 取回原图发给 MiMo v2.5。原始 base64 绝不进入文本模型上下文。

@@ -109,6 +109,8 @@ Restart your AI tool. Skills auto-trigger when you reference media files.
 
 ## Optional: Local Media Gateway
 
+> **Note — Claude Code only:** The gateway is adapted and tested only against **Claude Code**. Other agents (Cursor, Codex, OpenCode, etc.) shape requests differently, so you may need to adjust the interception/rewrite logic in `gateway/src/` and re-verify before relying on it.
+
 The skills above assume the agent hands the MCP tool a **file path** for each image. If instead your agent **pastes images inline** (as content blocks) while the primary model is a text-only model like MiMo v2.5 Pro, those inline images never reach the MCP tool. The optional [`gateway/`](gateway/) is a tiny local proxy that fixes this automatically.
 
 It sits between your agent and the MiMo Anthropic endpoint, rewrites every inline `image` block into a short `claude-cache-sha256:<hash>` reference, and writes the original image into the shared image cache. The primary model then calls `understand_image(source="claude-cache-sha256:<hash>")`; the MCP server resolves the hash from the cache and sends the real image to MiMo v2.5. No raw Base64 ever enters the text model's context.
